@@ -95,11 +95,15 @@ python src/prepare_data.py
 python src/add_noise.py --sigmas 10,20,30 --sp_levels 0.01,0.03,0.05 --seed 42 --max_size 1024
 ```
 
+
 ### 4. Khử nhiễu
 
 ```sh
-python src/denoise.py --filters gaussian,median,nlm --ksize 5 --sigma 1.5 --nlm_h 10 --nlm_hColor 10 --nlm_tws 7 --nlm_sws 21 --max_size 1024 --profile --timings_csv report/timings.csv
+python src/denoise.py --filters gaussian,median,nlm --ksize 5 --sigma 1.5 --nlm_h 10 --nlm_hColor 10 --nlm_tws 7 --nlm_sws 21 --max_size 1024 --profile
 ```
+
+
+
 
 ### 5. Đánh giá & xuất kết quả
 
@@ -107,7 +111,8 @@ python src/denoise.py --filters gaussian,median,nlm --ksize 5 --sigma 1.5 --nlm_
 python src/evaluate.py --plot_hist --plot_error --plot_edges
 ```
 
-### 6. Chạy giao diện web
+
+### 6. Chạy giao diện web (tùy chọn)
 
 ```sh
 streamlit run src/app.py
@@ -115,6 +120,7 @@ streamlit run src/app.py
 Sau đó mở đường dẫn được cung cấp trên trình duyệt để sử dụng giao diện.
 
 ---
+
 
 ## Chức năng chính
 
@@ -124,6 +130,12 @@ Sau đó mở đường dẫn được cung cấp trên trình duyệt để s�
 - Trực quan hóa: histogram, error map, edge map
 - Giao diện web trực quan, dễ sử dụng, hỗ trợ tải lên/xuống ảnh, so sánh kết quả
 - Notebook phân tích, tổng hợp, vẽ biểu đồ cho báo cáo
+
+---
+
+**Lưu ý:**
+- File `timings.csv` (nếu còn) chỉ để tham khảo tốc độ, không còn được cập nhật tự động.
+- Các bước chạy lại dự án: cài thư viện, chuẩn bị dữ liệu, tạo nhiễu, khử nhiễu, đánh giá, (tùy chọn) chạy app hoặc notebook.
 
 ---
 

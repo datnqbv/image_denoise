@@ -61,10 +61,17 @@ for orig_fname in os.listdir(orig_dir):
             "MAE": mae
         })
        
-        den_base = os.path.splitext(den_fname)[0] # Tên tệp cơ sở không có phần mở rộng.
+        den_base = os.path.splitext(den_fname)[0]
+        # Loại bỏ hậu tố bộ lọc khỏi tên file denoised để tìm đúng file noisy
+        for suffix in ["_gaussian", "_median", "_nlm"]:
+            if den_base.endswith(suffix):
+                noisy_base = den_base[: -len(suffix)]
+                break
+        else:
+            noisy_base = den_base
         if args.plot_hist: # Vẽ biểu đồ histogram
             try:
-                noisy_candidate = os.path.join(noisy_dir, f"{den_base}.png") # Tìm hình ảnh bị nhiễu tương ứng
+                noisy_candidate = os.path.join(noisy_dir, f"{noisy_base}.png") # Tìm hình ảnh bị nhiễu tương ứng
                 noisy_img = cv2.imread(noisy_candidate, cv2.IMREAD_COLOR) # Đọc ảnh màu (BGR) để giữ nguyên màu sắc từ đầu đến cuối
                 if noisy_img is not None: # Nếu hình ảnh bị nhiễu được đọc thành công
                     if noisy_img.shape[:2] != den.shape[:2]: # Nếu kích thước không khớp, thay đổi kích thước hình ảnh bị nhiễu cho phù hợp.

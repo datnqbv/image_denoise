@@ -46,7 +46,7 @@ if __name__ == "__main__":
     parser.add_argument("--unsharp", action="store_true", help="Apply light unsharp mask after denoise") # Áp dụng mặt nạ unsharp nhẹ sau khi khử nhiễu.
     parser.add_argument("--unsharp_amount", type=float, default=0.2, help="Strength of unsharp mask (default 0.2)") # Độ mạnh của mặt nạ unsharp (mặc định 0.2).
     parser.add_argument("--unsharp_sigma", type=float, default=1.0, help="Gaussian sigma for unsharp mask (default 1.0)") # Độ lệch chuẩn Gaussian cho mặt nạ unsharp (mặc định 1.0).
-    parser.add_argument("--timings_csv", type=str, default=None, help="Optional CSV to append per-image runtimes") # Tệp CSV tùy chọn để thêm thời gian chạy cho mỗi hình ảnh.
+    # parser.add_argument("--timings_csv", type=str, default=None, help="Optional CSV to append per-image runtimes") # Đã loại bỏ chức năng timings_csv
     args = parser.parse_args()
 
     noisy_dir = args.noisy_dir # Thư mục chứa hình ảnh bị nhiễu đầu vào.
@@ -82,10 +82,7 @@ if __name__ == "__main__":
             cv2.imwrite(os.path.join(out_dir, f"{base}_gaussian.png"), g) # Lưu hình ảnh đã được khử nhiễu bằng bộ lọc Gaussian.
             if args.profile: # In thời gian xử lý nếu chế độ hồ sơ được bật.
                 print(f"gaussian,{fname},{t.elapsed:.4f}s") # In thời gian xử lý nếu chế độ hồ sơ được bật.
-            if args.timings_csv: # Ghi thời gian xử lý vào tệp CSV nếu được chỉ định.
-                with open(args.timings_csv, "a", newline="") as f: # Mở tệp CSV để ghi thời gian xử lý.
-                    writer = csv.writer(f) # Tạo đối tượng ghi CSV.
-                    writer.writerow([fname, "gaussian", f"{t.elapsed:.6f}"]) # Ghi thời gian xử lý vào tệp CSV nếu được chỉ định.
+            # Đã loại bỏ chức năng ghi timings_csv
         if "median" in chosen:
             with Timer() as t: 
                 m = median_filter(img, ksize=args.ksize)
@@ -94,10 +91,7 @@ if __name__ == "__main__":
             cv2.imwrite(os.path.join(out_dir, f"{base}_median.png"), m)
             if args.profile:
                 print(f"median,{fname},{t.elapsed:.4f}s")
-            if args.timings_csv: 
-                with open(args.timings_csv, "a", newline="") as f: 
-                    writer = csv.writer(f) 
-                    writer.writerow([fname, "median", f"{t.elapsed:.6f}"]) # Ghi thời gian xử lý vào tệp CSV nếu được chỉ định.
+            # Đã loại bỏ chức năng ghi timings_csv
         if "nlm" in chosen:
             with Timer() as t:
                 n = nlm_filter_colored(img, h=args.nlm_h, hColor=args.nlm_hColor, templateWindowSize=args.nlm_tws, searchWindowSize=args.nlm_sws) # Áp dụng bộ lọc Non-Local Means (NLM) cho ảnh màu.
@@ -106,8 +100,5 @@ if __name__ == "__main__":
             cv2.imwrite(os.path.join(out_dir, f"{base}_nlm.png"), n)
             if args.profile:
                 print(f"nlm,{fname},{t.elapsed:.4f}s") 
-            if args.timings_csv:
-                with open(args.timings_csv, "a", newline="") as f:
-                    writer = csv.writer(f)
-                    writer.writerow([fname, "nlm", f"{t.elapsed:.6f}"]) 
+            # Đã loại bỏ chức năng ghi timings_csv
     print("Denoising finished.")

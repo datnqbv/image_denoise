@@ -16,7 +16,7 @@ from skimage.metrics import peak_signal_noise_ratio as psnr
 from skimage.metrics import structural_similarity as ssim
 
 # Cấu hình trang với icon và theme
-st.set_page_config(
+st.set_page_config( # Cấu hình trang Streamlit với tiêu đề, biểu tượng và bố cục tùy chỉnh
     page_title="Image Denoising Studio",
     page_icon="🖼️",
     layout="wide",
@@ -141,38 +141,38 @@ with st.sidebar:
         
         st.divider()
         
-        st.markdown("**Gaussian & Median:**")
+        st.markdown("**Gaussian & Median:**") # Tham số cho bộ lọc Gaussian và Median
         ksize = st.slider("Kernel size", 3, 11, 
-                         st.session_state.get('ksize', 5), 2, 
-                         help="Kích thước kernel (số lẻ). Khuyến nghị: 3-5")
-        g_sigma = st.slider("Gaussian σ", 0.1, 5.0, 
+                         st.session_state.get('ksize', 5), 2, # Bước nhảy 2 để chỉ chọn số lẻ
+                         help="Kích thước kernel (số lẻ). Khuyến nghị: 3-5") 
+        g_sigma = st.slider("Gaussian σ", 0.1, 5.0, # Độ lệch chuẩn cho bộ lọc Gaussian
                            st.session_state.get('g_sigma', 1.5), 0.1, 
                            help="Độ mượt của Gaussian. Khuyến nghị: 0.8-1.5")
         
-        st.markdown("**Non-Local Means:**")
+        st.markdown("**Non-Local Means:**") # Tham số cho bộ lọc NLM
         nlm_h = st.slider("NLM h", 1, 30, 
-                         st.session_state.get('nlm_h', 10), 
+                         st.session_state.get('nlm_h', 10), # Độ mạnh khử nhiễu
                          help="Độ mạnh khử nhiễu. Khuyến nghị: 7-12 (quá cao sẽ làm mờ ảnh)")
-        nlm_hColor = st.slider("NLM hColor", 1, 30, 
+        nlm_hColor = st.slider("NLM hColor", 1, 30, # Độ mạnh cho màu sắc
                               st.session_state.get('nlm_hColor', 10), 
                               help="Độ mạnh cho màu sắc. Khuyến nghị: 7-12")
-        nlm_tws = st.slider("Template Window", 3, 15, 7, 2, 
+        nlm_tws = st.slider("Template Window", 3, 15, 7, 2, # Bước nhảy 2 để chỉ chọn số lẻ
                            help="Kích thước cửa sổ mẫu. Mặc định: 7")
-        nlm_sws = st.slider("Search Window", 7, 31, 21, 2, 
+        nlm_sws = st.slider("Search Window", 7, 31, 21, 2,  # Bước nhảy 2 để chỉ chọn số lẻ
                            help="Kích thước vùng tìm kiếm. Mặc định: 21")
         
         st.markdown("**Tăng độ sắc nét:**")
-        apply_unsharp = st.checkbox(
+        apply_unsharp = st.checkbox( # Áp dụng bộ lọc làm sắc nét
             "Unsharp mask",
             value=False,
             help="Làm ảnh rõ nét hơn sau khử nhiễu. Nên dùng khi ảnh bị mờ, nhưng tránh đặt quá cao để không bị gắt hoặc xuất hiện viền giả."
         )
-        if apply_unsharp:
-            unsharp_amount = st.slider("Độ mạnh", 0.0, 2.0, 0.2, 0.05)
-            unsharp_sigma = st.slider("Unsharp σ", 0.1, 3.0, 1.0, 0.1)
+        if apply_unsharp: # Nếu áp dụng unsharp mask, hiển thị thêm tùy chọn
+            unsharp_amount = st.slider("Độ mạnh", 0.0, 2.0, 0.2, 0.05) # Độ mạnh của unsharp mask
+            unsharp_sigma = st.slider("Unsharp σ", 0.1, 3.0, 1.0, 0.1) # Độ lệch chuẩn của unsharp mask
         else:
-            unsharp_amount = 0.2
-            unsharp_sigma = 1.0
+            unsharp_amount = 0.2 # Giá trị mặc định
+            unsharp_sigma = 1.0 # Giá trị mặc định
         
         st.divider()
         
@@ -208,39 +208,39 @@ with st.sidebar:
     st.info("📚 **Dự án:** Khử nhiễu ảnh\n\n🎓 **Phương pháp:** Gaussian, Median, NLM")
     
 
-
-def to_bgr(np_img: np.ndarray) -> np.ndarray:
+# Hàm tiện ích
+def to_bgr(np_img: np.ndarray) -> np.ndarray: # Chuyển ảnh sang định dạng BGR
     if np_img.ndim == 2:
-        return cv2.cvtColor(np_img, cv2.COLOR_GRAY2BGR)
+        return cv2.cvtColor(np_img, cv2.COLOR_GRAY2BGR) # Chuyển ảnh xám sang BGR
     return np_img
 
-
-def load_image(file) -> np.ndarray:
-    if file is None:
+# Hàm tải ảnh từ file upload
+def load_image(file) -> np.ndarray: # Tải ảnh từ file upload và chuyển sang định dạng BGR
+    if file is None: 
         return None
-    bytes_data = file.read()
-    pil = Image.open(io.BytesIO(bytes_data)).convert("RGB")
-    img = cv2.cvtColor(np.array(pil), cv2.COLOR_RGB2BGR)
-    return to_bgr(img)
+    bytes_data = file.read() # Đọc dữ liệu ảnh dưới dạng bytes
+    pil = Image.open(io.BytesIO(bytes_data)).convert("RGB") # Mở ảnh với PIL và chuyển sang RGB
+    img = cv2.cvtColor(np.array(pil), cv2.COLOR_RGB2BGR) # Chuyển sang BGR
+    return to_bgr(img) # Trả về ảnh ở định dạng BGR
 
+# Hàm thêm nhiễu
+def add_gaussian_noise(img: np.ndarray, sigma: float) -> np.ndarray: # Thêm nhiễu Gaussian vào ảnh
+    gauss = np.random.normal(0, sigma, img.shape).astype(np.float32) # Tạo nhiễu Gaussian
+    noisy = img.astype(np.float32) + gauss # Thêm nhiễu vào ảnh
+    return np.clip(noisy, 0, 255).astype(np.uint8) # Trả về ảnh nhiễu đã được cắt gọn
 
-def add_gaussian_noise(img: np.ndarray, sigma: float) -> np.ndarray:
-    gauss = np.random.normal(0, sigma, img.shape).astype(np.float32)
-    noisy = img.astype(np.float32) + gauss
-    return np.clip(noisy, 0, 255).astype(np.uint8)
+# Hàm thêm nhiễu muối tiêu
+def add_sp_noise(img: np.ndarray, amount: float) -> np.ndarray: # Thêm nhiễu Salt & Pepper vào ảnh
+    out = img.copy() # Sao chép ảnh gốc
+    h, w = img.shape[:2] # Lấy kích thước ảnh
+    num_salt = int(amount * h * w / 2) # Số pixel muối
+    coords = (np.random.randint(0, h, num_salt), np.random.randint(0, w, num_salt)) # Tọa độ ngẫu nhiên
+    out[coords] = 255 # Thêm muối (trắng)
+    coords = (np.random.randint(0, h, num_salt), np.random.randint(0, w, num_salt)) # Tọa độ ngẫu nhiên
+    out[coords] = 0 # Thêm tiêu (đen)
+    return out # Trả về ảnh nhiễu
 
-
-def add_sp_noise(img: np.ndarray, amount: float) -> np.ndarray:
-    out = img.copy()
-    h, w = img.shape[:2]
-    num_salt = int(amount * h * w / 2)
-    coords = (np.random.randint(0, h, num_salt), np.random.randint(0, w, num_salt))
-    out[coords] = 255
-    coords = (np.random.randint(0, h, num_salt), np.random.randint(0, w, num_salt))
-    out[coords] = 0
-    return out
-
-
+# Hàm tính các chỉ số đánh giá
 def calculate_metrics(original, processed):
     """Tính toán các chỉ số đánh giá chất lượng ảnh"""
     # Chuyển sang RGB để tính toán
@@ -263,13 +263,13 @@ def calculate_metrics(original, processed):
 
 img = load_image(uploaded)
 
-if img is not None:
+if img is not None: # Nếu ảnh đã được tải lên
     img = maybe_resize(img, max_size)
     
     # Tạo tabs để hiển thị khác nhau
     tab1, tab2, tab3, tab4 = st.tabs(["🖼️ So sánh kết quả", "📊 Chỉ số đánh giá", "📈 Thống kê", "💾 Tải xuống"])
     
-    with tab1:
+    with tab1: # Tab so sánh kết quả
         # Xử lý nhiễu nếu có
         work = img.copy()
         if add_noise and noise_type:
@@ -281,29 +281,29 @@ if img is not None:
         # Xử lý khử nhiễu
         results = []
         if "gaussian" in chosen:
-            g = gaussian_filter(work, ksize=ksize, sigma=g_sigma)
+            g = gaussian_filter(work, ksize=ksize, sigma=g_sigma) # Áp dụng bộ lọc Gaussian
             results.append(("Gaussian Filter", g))
         if "median" in chosen:
-            m = median_filter(work, ksize=ksize)
+            m = median_filter(work, ksize=ksize) # Áp dụng bộ lọc Median
             results.append(("Median Filter", m))
         if "nlm" in chosen:
             n = nlm_filter_colored(work, h=nlm_h, hColor=nlm_hColor, templateWindowSize=nlm_tws, searchWindowSize=nlm_sws)
             results.append(("Non-Local Means", n))
         
-        if apply_unsharp:
-            results = [(name, unsharp_mask(img_, amount=unsharp_amount, sigma=unsharp_sigma)) for name, img_ in results]
+        if apply_unsharp: 
+            results = [(name, unsharp_mask(img_, amount=unsharp_amount, sigma=unsharp_sigma)) for name, img_ in results] # Áp dụng unsharp mask nếu được chọn
         
         # Hiển thị kết quả theo grid
         st.markdown("### 🎯 Kết quả so sánh")
         
         # Dòng 1: Ảnh gốc và ảnh nhiễu (nếu có)
-        cols = st.columns(2 if add_noise else 1)
-        with cols[0]:
+        cols = st.columns(2 if add_noise else 1) # Tạo 2 cột nếu có ảnh nhiễu, 1 cột nếu không
+        with cols[0]: # Cột ảnh gốc
             st.markdown("#### 📸 Ảnh gốc")
             st.image(cv2.cvtColor(img, cv2.COLOR_BGR2RGB), use_column_width=True)
         
         if add_noise:
-            with cols[1]:
+            with cols[1]: # Cột ảnh nhiễu
                 st.markdown(f"#### 🎲 Ảnh nhiễu ({noise_type})")
                 st.image(cv2.cvtColor(work, cv2.COLOR_BGR2RGB), use_column_width=True)
         
@@ -312,25 +312,25 @@ if img is not None:
         # Dòng 2: Kết quả các bộ lọc
         if results:
             st.markdown("#### 🔧 Kết quả khử nhiễu")
-            cols = st.columns(len(results))
-            for idx, (name, out) in enumerate(results):
-                with cols[idx]:
+            cols = st.columns(len(results)) # Tạo cột cho mỗi bộ lọc đã chọn
+            for idx, (name, out) in enumerate(results): # Hiển thị kết quả từng bộ lọc
+                with cols[idx]: # Cột tương ứng với bộ lọc
                     st.markdown(f"**{name}**")
                     st.image(cv2.cvtColor(out, cv2.COLOR_BGR2RGB), use_column_width=True)
         else:
             st.warning("⚠️ Vui lòng chọn ít nhất một bộ lọc!")
     
-    with tab2:
+    with tab2: # Tab chỉ số đánh giá
         st.markdown("### 📊 So sánh chỉ số đánh giá chất lượng")
         
-        if results and add_noise:
+        if results and add_noise: # Chỉ hiển thị nếu có kết quả và ảnh nhiễu
             st.info("💡 **Lưu ý:** Chỉ số được tính so sánh giữa ảnh gốc và ảnh sau khử nhiễu")
             
             # Tính toán chỉ số cho từng bộ lọc
-            metrics_data = []
-            for name, out in results:
-                metrics = calculate_metrics(img, out)
-                metrics_data.append({
+            metrics_data = [] # Danh sách lưu trữ dữ liệu chỉ số
+            for name, out in results: # Tính toán chỉ số cho từng kết quả
+                metrics = calculate_metrics(img, out) # Tính các chỉ số
+                metrics_data.append({ # Thêm dữ liệu vào danh sách
                     'Bộ lọc': name,
                     'PSNR (dB)': f"{metrics['PSNR']:.2f}",
                     'SSIM': f"{metrics['SSIM']:.4f}",
@@ -339,7 +339,7 @@ if img is not None:
                 })
             
             # Hiển thị bảng so sánh
-            df_metrics = pd.DataFrame(metrics_data)
+            df_metrics = pd.DataFrame(metrics_data) # Tạo DataFrame từ dữ liệu chỉ số
             st.markdown("#### 📋 Bảng so sánh các chỉ số")
             st.dataframe(df_metrics, use_container_width=True)
             
@@ -353,7 +353,7 @@ if img is not None:
             # PSNR & SSIM (chỉ số quan trọng nhất)
             col1, col2 = st.columns(2)
             
-            with col1:
+            with col1: # Biểu đồ PSNR
                 fig, ax = plt.subplots(figsize=(6, 4))
                 psnr_values = [calculate_metrics(img, out)['PSNR'] for _, out in results]
                 colors = ['#667eea', '#764ba2', '#f093fb']
@@ -368,7 +368,7 @@ if img is not None:
                 st.pyplot(fig)
                 plt.close()
             
-            with col2:
+            with col2: # Biểu đồ SSIM
                 fig, ax = plt.subplots(figsize=(6, 4))
                 ssim_values = [calculate_metrics(img, out)['SSIM'] for _, out in results]
                 ax.bar([name for name, _ in results], ssim_values, color=colors[:len(results)])
@@ -388,7 +388,7 @@ if img is not None:
             # MSE & MAE (chỉ số bổ trợ)
             col3, col4 = st.columns(2)
             
-            with col3:
+            with col3: # Biểu đồ MSE
                 fig, ax = plt.subplots(figsize=(6, 4))
                 mse_values = [calculate_metrics(img, out)['MSE'] for _, out in results]
                 ax.bar([name for name, _ in results], mse_values, color=colors[:len(results)])
@@ -398,7 +398,7 @@ if img is not None:
                 st.pyplot(fig)
                 plt.close()
             
-            with col4:
+            with col4: # Biểu đồ MAE
                 fig, ax = plt.subplots(figsize=(6, 4))
                 mae_values = [calculate_metrics(img, out)['MAE'] for _, out in results]
                 ax.bar([name for name, _ in results], mae_values, color=colors[:len(results)])
@@ -414,29 +414,29 @@ if img is not None:
             st.markdown("#### 💡 Nhận xét & Gợi ý")
             
             # Tìm bộ lọc tốt nhất dựa trên PSNR và SSIM
-            best_psnr_idx = psnr_values.index(max(psnr_values))
-            best_ssim_idx = ssim_values.index(max(ssim_values))
-            best_filter_psnr = results[best_psnr_idx][0]
-            best_filter_ssim = results[best_ssim_idx][0]
+            best_psnr_idx = psnr_values.index(max(psnr_values)) # Chỉ số PSNR cao nhất
+            best_ssim_idx = ssim_values.index(max(ssim_values)) # Chỉ số SSIM cao nhất
+            best_filter_psnr = results[best_psnr_idx][0] # Tên bộ lọc có PSNR cao nhất
+            best_filter_ssim = results[best_ssim_idx][0] # Tên bộ lọc có SSIM cao nhất
             
-            col_a, col_b = st.columns(2)
-            with col_a:
+            col_a, col_b = st.columns(2) # Hiển thị bộ lọc tốt nhất
+            with col_a: # Hiển thị bộ lọc tốt nhất
                 st.success(f"🏆 **PSNR cao nhất:** {best_filter_psnr}\n\nGiá trị: {psnr_values[best_psnr_idx]:.2f} dB")
-            with col_b:
+            with col_b: # Hiển thị bộ lọc tốt nhất
                 st.success(f"🏆 **SSIM cao nhất:** {best_filter_ssim}\n\nGiá trị: {ssim_values[best_ssim_idx]:.4f}")
             
             # Gợi ý dựa trên kết quả
-            if best_filter_psnr == best_filter_ssim:
+            if best_filter_psnr == best_filter_ssim: # Nếu cùng bộ lọc tốt nhất
                 st.info(f"✅ **Kết luận:** Bộ lọc **{best_filter_psnr}** cho kết quả tốt nhất cho ảnh này!")
             else:
                 st.info(f"ℹ️ **Kết luận:** Bộ lọc **{best_filter_psnr}** có PSNR cao nhất, nhưng **{best_filter_ssim}** có SSIM cao nhất. Nên xem xét cả hai chỉ số để đánh giá tổng thể.")
                 
-        elif results and not add_noise:
+        elif results and not add_noise: # Nếu có kết quả nhưng không có ảnh nhiễu
             st.warning("⚠️ Cần có ảnh nhiễu (bật 'Thêm nhiễu vào ảnh') để tính toán các chỉ số so sánh với ảnh gốc.")
         else:
             st.info("Chưa có kết quả để hiển thị chỉ số đánh giá.")
     
-    with tab3:
+    with tab3: # Tab thống kê
         st.markdown("### 📊 Thống kê ảnh")
         
         if results:
@@ -459,10 +459,10 @@ if img is not None:
             import matplotlib.pyplot as plt
             
             # Histogram ảnh gốc/nhiễu
-            with fig_cols[0]:
-                fig, ax = plt.subplots(figsize=(4, 3))
-                gray_work = cv2.cvtColor(work, cv2.COLOR_BGR2GRAY)
-                ax.hist(gray_work.ravel(), bins=256, range=(0, 256), color='blue', alpha=0.7)
+            with fig_cols[0]: # Cột đầu tiên cho ảnh gốc hoặc ảnh nhiễu
+                fig, ax = plt.subplots(figsize=(4, 3)) # Tạo biểu đồ
+                gray_work = cv2.cvtColor(work, cv2.COLOR_BGR2GRAY) # Chuyển ảnh sang xám
+                ax.hist(gray_work.ravel(), bins=256, range=(0, 256), color='blue', alpha=0.7) # Vẽ histogram
                 ax.set_title('Input' if not add_noise else f'Noisy ({noise_type})')
                 ax.set_xlabel('Pixel value')
                 ax.set_ylabel('Frequency')
@@ -471,10 +471,10 @@ if img is not None:
                 plt.close()
             
             # Histogram các kết quả
-            for idx, (name, out) in enumerate(results):
-                with fig_cols[idx + 1]:
-                    fig, ax = plt.subplots(figsize=(4, 3))
-                    gray_out = cv2.cvtColor(out, cv2.COLOR_BGR2GRAY)
+            for idx, (name, out) in enumerate(results): # Vòng lặp qua từng kết quả để hiển thị histogram
+                with fig_cols[idx + 1]: # Cột tiếp theo cho từng bộ lọc
+                    fig, ax = plt.subplots(figsize=(4, 3)) # Tạo biểu đồ
+                    gray_out = cv2.cvtColor(out, cv2.COLOR_BGR2GRAY) # Chuyển ảnh sang xám 
                     ax.hist(gray_out.ravel(), bins=256, range=(0, 256), color='green', alpha=0.7)
                     ax.set_title(name)
                     ax.set_xlabel('Pixel value')
@@ -485,30 +485,30 @@ if img is not None:
         else:
             st.info("Chưa có kết quả để hiển thị thống kê.")
     
-    with tab4:
+    with tab4: # Tab tải xuống
         st.markdown("### 💾 Tải xuống kết quả")
         
-        if results:
+        if results: # Nếu có kết quả để tải xuống
             st.success(f"✅ Đã xử lý thành công {len(results)} ảnh!")
             
             # Tạo nút download cho từng kết quả
-            for idx, (name, out) in enumerate(results):
-                col1, col2 = st.columns([3, 1])
-                with col1:
+            for idx, (name, out) in enumerate(results): # Vòng lặp qua từng kết quả để tạo nút tải xuống
+                col1, col2 = st.columns([3, 1]) # Tạo 2 cột: tên bộ lọc và nút tải xuống
+                with col1: # Cột tên bộ lọc
                     st.write(f"**{idx+1}. {name}**")
-                with col2:
-                    st.download_button(
+                with col2: # Cột nút tải xuống
+                    st.download_button( # Tạo nút tải xuống
                         label="⬇️ Tải xuống",
-                        data=cv2.imencode('.png', out)[1].tobytes(),
-                        file_name=f"denoised_{name.lower().replace(' ', '_')}.png",
-                        mime="image/png",
-                        key=f"download_{idx}"
+                        data=cv2.imencode('.png', out)[1].tobytes(), # Mã hóa ảnh sang PNG và chuyển thành bytes
+                        file_name=f"denoised_{name.lower().replace(' ', '_')}.png", # Tên file tải xuống
+                        mime="image/png", # Định dạng MIME
+                        key=f"download_{idx}" # Khóa duy nhất cho mỗi nút
                     )
             
             st.divider()
             
             # Nút tải tất cả (zip)
-            st.markdown("#### 📦 Tải tất cả cùng lúc")
+            st.markdown("#### 📦 Tải tất cả cùng lúc") # Tab tải xuống
             st.info("💡 Mẹo: Tải từng ảnh ở trên hoặc sử dụng các công cụ nén file nếu cần tải nhiều ảnh.")
         else:
             st.warning("⚠️ Chưa có kết quả để tải xuống. Vui lòng chọn bộ lọc!")
